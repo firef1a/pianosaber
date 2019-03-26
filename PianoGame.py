@@ -10,13 +10,14 @@ import pygame.midi
 import pygame.time
 import pygame_textinput
 
-#import simpleaudio as sa
-sa = None
+import simpleaudio as sa
+#sa = None
 
 # define all the constant values -----------------------------------------------
 volume = 127
 device = 1     # device number in win10 laptop
-device = 2     # desktop
+#device = 2     # desktop
+
 
 # http://www.ccarh.org/courses/253/handout/gminstruments/
 instrument = 0 
@@ -84,8 +85,8 @@ def initialize_window(width, height):
   pygame.init()
   pygame.display.set_caption('Happy Birthday!... for now.')
   #screen = pygame.display.set_mode(size)
-  #screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-  screen = pygame.display.set_mode((1920,1080))
+  screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+  #screen = pygame.display.set_mode((1920,1080))
   screen.fill((0,0,0))
 
   return screen
@@ -93,6 +94,7 @@ def initialize_window(width, height):
 class PianoGame:
   def __init__(self, song):
     self.song = song
+    self.playgasd = False
 
   def update_screen(self):
         self.screen.fill((0,0,0))
@@ -329,22 +331,23 @@ class PianoGame:
                   if self.k1 == True:   self.score += 0.25
                   elif self.k2 == True: self.score += 5
                   elif self.k3 == True: self.score += 15
+                  elif self.playgasd == False: self.score += 20000
+                  elif self.playgasd == True: pass
                   else:
                     self.score += 5
 
-                  if self.keypressed:
-                    self.buffer = self.buffer[-6:]
+        if not self.playgasd:
+
+                  self.buffer = self.buffer[-6:]
                   s = ''.join(self.buffer)
 
                   if s.endswith("gasd"):
                     wave_obj = sa.WaveObject.from_wave_file("Ta Da-SoundBible.com-1884170640.wav")
                     play_obj = wave_obj.play()
                     play_obj.wait_done()
-                    buffer = []
-                    if n == 1000 and self.score < 1000:
-                      self.score += 1000
-                    elif self.score > 1000:
-                      pass
+                    self.buffer = []
+                    self.playgasd = True
+                    
 
                     n = time.time()
       if self.gamemode == "playing":
