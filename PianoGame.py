@@ -117,8 +117,8 @@ class Splash(States):
         self.done = True
 
   def draw(self, screen):
-    textsurface = self.app.myfont.render("Piano Saber", False, (255,255,255))
-    self.app.screen.blit(textsurface, ((self.app.width-textsurface.get_size()[0])//2, self.app.height//2))
+    textsurface = self.app.myfont.render("Piano Saber", False, WHITE)
+    screen.blit(textsurface, ((self.app.width-textsurface.get_size()[0])//2, self.app.height//2))
 
 
 class Start(States):
@@ -181,49 +181,48 @@ class Start(States):
     self.draw(screen)
 
   def draw(self, screen):
-    screen.fill((0,0,0))
+    screen.fill(BLACK)
 
-    textsurface = self.app.myfont.render("Score: %d" % self.app.score, False, (255,255,255))
-    self.app.screen.blit(textsurface, (500, 200))
+    textsurface = self.app.myfont.render("Score: %d" % self.app.score, False, WHITE)
+    screen.blit(textsurface, (500, 200))
 
-    textsurface = self.app.myfont.render("Highscores", False, (255,255,255))
-    self.app.screen.blit(textsurface, ((self.app.width-textsurface.get_size()[0])//2, self.app.height//4-50))
+    textsurface = self.app.myfont.render("Highscores", False, WHITE)
+    screen.blit(textsurface, ((self.app.width-textsurface.get_size()[0])//2, self.app.height//4-50))
 
     topten = self.app.highscores[-10:]
     topten.reverse()
     for i, (highscore, name) in enumerate(topten):
-      textsurface = self.app.myfont.render("%s %s" % (name, highscore), False, (255,255,255))
-      self.app.screen.blit(textsurface, ((self.app.width-textsurface.get_size()[0])//2, self.app.height//4 + i*30))
-
+      textsurface = self.app.myfont.render("%s %s" % (name, highscore), False, WHITE)
+      screen.blit(textsurface, ((self.app.width-textsurface.get_size()[0])//2, self.app.height//4 + i*30))
 
     if (int(time.time()*2) % 2) == 0:
-      color = (255,255,255)
+      color = WHITE
     else:
       color = (50,50,50)
 
     textsurface = self.app.myfont.render("Please Enter to Start", False, color)
-    self.app.screen.blit(textsurface, ((self.app.width-textsurface.get_size()[0])//2, self.app.height//2+50))
+    screen.blit(textsurface, ((self.app.width-textsurface.get_size()[0])//2, self.app.height//2+50))
 
-    textsurface = self.app.myfont.render("Speed Options:", False, (255,255,255))
-    self.app.screen.blit(textsurface, (1250, 250))
+    textsurface = self.app.myfont.render("Speed Options:", False, WHITE)
+    screen.blit(textsurface, (1250, 250))
 
     textsurface = self.app.myfont.render("Super slow", False, (self.app.Slow))
-    self.app.screen.blit(textsurface, (1250, 300))
+    screen.blit(textsurface, (1250, 300))
 
     textsurface = self.app.myfont.render("Normal", False, (self.app.Normal))
-    self.app.screen.blit(textsurface, (1250, 350))
+    screen.blit(textsurface, (1250, 350))
 
     textsurface = self.app.myfont.render("Impossable", False, (self.app.Imp))
-    self.app.screen.blit(textsurface, (1250, 400))
+    screen.blit(textsurface, (1250, 400))
 
-    textsurface = self.app.myfont.render("Press 1, 2, or 3 ", False, (255,255,255))
-    self.app.screen.blit(textsurface, (1250, 600))
+    textsurface = self.app.myfont.render("Press 1, 2, or 3 ", False, WHITE)
+    screen.blit(textsurface, (1250, 600))
 
-    textsurface = self.app.myfont.render("to change difficulty ", False, (255,255,255))
-    self.app.screen.blit(textsurface, (1250, 650))
+    textsurface = self.app.myfont.render("to change difficulty ", False, WHITE)
+    screen.blit(textsurface, (1250, 650))
 
-    textsurface = self.app.myfont.render("level", False, (255,255,255))
-    self.app.screen.blit(textsurface, (1250, 700))
+    textsurface = self.app.myfont.render("level", False, WHITE)
+    screen.blit(textsurface, (1250, 700))
 
 
 
@@ -236,7 +235,7 @@ class Finish(States):
 
   def startup(self):
       logging.debug('starting Finish state')
-      self.textinput = pygame_textinput.TextInput('', text_color=(255, 255, 255), cursor_color=(255, 255, 255))
+      self.textinput = pygame_textinput.TextInput('', text_color=WHITE, cursor_color=WHITE)
       self.textinput.clear_text()
 
   def process_events(self, events):
@@ -251,25 +250,27 @@ class Finish(States):
     self.draw(screen)
 
   def draw(self, screen):
-    screen.fill((0,0,0))
+    width, height = screen.get_size()
 
-    textsurface = self.app.myfont.render("Score: %d" % self.app.score, False, (255,255,255))
-    self.app.screen.blit(textsurface, (500, 200))
+    screen.fill(BLACK)
 
-    textsurface = self.app.myfont.render("Highscores", False, (255,255,255))
-    self.app.screen.blit(textsurface, ((self.app.width-textsurface.get_size()[0])//2, self.app.height//4-50))
+    textsurface = self.app.myfont.render("Score: %d" % self.app.score, False, WHITE)
+    screen.blit(textsurface, (500, 200))
+
+    textsurface = self.app.myfont.render("Highscores", False, WHITE)
+    screen.blit(textsurface, ((width-textsurface.get_size()[0])//2, height//4-50))
 
     topten = self.app.highscores[-10:]
     topten.reverse()
     for i, (highscore, name) in enumerate(topten):
-      textsurface = self.app.myfont.render("%s %s" % (name, highscore), False, (255,255,255))
-      self.app.screen.blit(textsurface, ((self.app.width-textsurface.get_size()[0])//2, self.app.height//4 + i*30))
+      textsurface = self.app.myfont.render("%s %s" % (name, highscore), False, WHITE)
+      screen.blit(textsurface, ((width-textsurface.get_size()[0])//2, height//4 + i*30))
 
-    textsurface = self.app.myfont.render("Please enter your name: ", False, (255,255,255))
-    self.app.screen.blit(textsurface, ((self.app.width-textsurface.get_size()[0])//2, self.app.height//2+50))
+    textsurface = self.app.myfont.render("Please enter your name: ", False, WHITE)
+    screen.blit(textsurface, ((width-textsurface.get_size()[0])//2, height//2+50))
 
     textinput_surf = self.textinput.get_surface()
-    self.app.screen.blit(textinput_surf, ((self.app.width-textsurface.get_size()[0])//2, self.app.height//2 + 100))
+    screen.blit(textinput_surf, ((width-textsurface.get_size()[0])//2, height//2 + 100))
 
 
 class PianoGame(States):
@@ -285,9 +286,8 @@ class PianoGame(States):
 
     self.playgasd = False
 
-    self.bottom = self.app.height - 300
-
     self.displayNotes = []
+
     y = int(self.app.height / 2)
     noteHeight = 20
 
@@ -296,13 +296,11 @@ class PianoGame(States):
       y += (dur * noteHeight)
       y += noteHeight//5
 
-    self.running = True
     self.keypressed = None
     self.playsong = False
 
     self.buffer = []
     self.cy1 = 0
-
 
   def update(self, screen):
     if self.keypressed:
@@ -330,9 +328,6 @@ class PianoGame(States):
                     
     lastnote = self.displayNotes[-1]
     if self.cy1 > lastnote[1]+100:
-      #song is overxs
-      self.playsong = False
-
       ## show score
       self.done = True
       return
@@ -343,39 +338,42 @@ class PianoGame(States):
     self.draw(screen)
 
   def draw(self, screen):
-    screen.fill((0,0,0))
+    width, height = screen.get_size()
+    bottom = height - 300
+
+    screen.fill(BLACK)
 
     if 1:
-      screen.fill((255,255,255), (0,self.bottom,self.app.width,4))  # draw scoring line
+      screen.fill(WHITE, (0,bottom,width,4))  # draw scoring line
 
-      cy2 = self.cy1 + self.bottom
+      cy2 = self.cy1 + bottom
 
       dx = 80
-      margin = (self.app.width - dx*8) // 2
+      margin = (width - dx*8) // 2
 
       for noteid, note in enumerate(self.song.Noteid):
         x = (noteid * dx) + margin
-        screen.fill((255,255,255), (x,0,1,self.bottom))  # draw note line
+        screen.fill(WHITE, (x,0,1,bottom))  # draw note line
 
-        bgcolor = (255,255,255)
+        bgcolor = WHITE
 
         if self.keypressed and self.song.Keyids.index(self.keypressed) == noteid:
           bgcolor = (255,0,0) 
 
         textsurface = self.app.myfont.render(note, False, bgcolor)  # draw Note
-        screen.blit(textsurface,(x-textsurface.get_size()[0]//2,self.bottom+30))
+        screen.blit(textsurface,(x-textsurface.get_size()[0]//2,bottom+30))
 
         textsurface = self.app.myfont.render(self.song.Keyids[noteid], False, bgcolor) # draw key
-        screen.blit(textsurface,(x-textsurface.get_size()[0]//2,self.bottom+50))
+        screen.blit(textsurface,(x-textsurface.get_size()[0]//2,bottom+60))
 
       for (y1, y2, note) in self.displayNotes:
         if y2 < self.cy1 or y1 > cy2: continue
         noteid = self.song.Noteid.index(note)
         x = (noteid * dx) + margin
-        y = self.bottom - (y2-self.cy1)
-        self.app.screen.fill((0, 76, 255), (x-10, y, 20, y2-y1))
+        y = bottom - (y2-self.cy1)
+        screen.fill((0, 76, 255), (x-10, y, 20, y2-y1))
 
-    textsurface = self.app.myfont.render("Score: %d" % self.app.score, False, (255,255,255))
+    textsurface = self.app.myfont.render("Score: %d" % self.app.score, False, WHITE)
     screen.blit(textsurface, (500, 200))
 
 
@@ -489,7 +487,7 @@ class App:
         self.screen.blit(textsurface, (0, 0))
 
       pygame.display.update()
-      #pygame.display.flip()
+      pygame.display.flip()
 
 
 def start():
