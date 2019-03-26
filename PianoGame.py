@@ -1,55 +1,79 @@
+#!/usr/bin/env python3
+
+## pip3 install simpleaudio
+
+import os
+import time
+import math
 import pygame
 import pygame.midi
 import pygame.time
-import time
-import keyboard
-import math
-import simpleaudio as sa
 import pygame_textinput
-import pyautogui as gui
+
+#import simpleaudio as sa
+sa = None
 
 # define all the constant values -----------------------------------------------
-n = int(127)
+volume = 127
 device = 1     # device number in win10 laptop
-instrument = 0 # http://www.ccarh.org/courses/253/handout/gminstruments/
-note_D3 = 62
-note_E3 = 64
-note_Fsharp3 = 66   # http://www.electronics.dit.ie/staff/tscarff/Music_technology/midi/midi_note_numbers_for_octaves.htm
-note_G3 = 67
-note_A3 = 69
-note_B3 = 71
-note_C4 = 72
-note_D4 = 74
+device = 2     # desktop
 
-happysong = [('D3', 3), ('D3', 1), ('E3', 4), ('D3', 4), ('G3', 4), ('F#3', 8), ('D3', 3), ('D3', 1), ('E3', 4), ('D3', 4), 
-	('A3', 4), ('G3', 8), ('D3', 3), ('D3', 1), ('D4', 4), ('B3', 4), ('G3', 4), ('F#3', 4), ('E3', 4), ('C4', 3), ('C4', 1), ('B3', 4), 
-	('G3', 4), ('A3', 4), ('G3', 12)]
+# http://www.ccarh.org/courses/253/handout/gminstruments/
+instrument = 0 
+
+whole = 16
+half = 8
+quarter = 4
+eighth = 2
+sixteenth = 1
+
+class Song:
+  def __init__(self, name):
+    self.name = name
+
+happysong = Song("Happy Birthday")
+happysong.song = [('D4', eighth+sixteenth), ('D4', sixteenth), ('E4', quarter), 
+             ('D4', quarter), ('G4', quarter), 
+             ('F4#', eighth), ('D4', eighth+sixteenth), 
+             ('D4', sixteenth), ('E4', quarter), ('D4', quarter), 
+             ('A4', quarter), ('G4', half), ('D4', eighth+sixteenth), ('D4', sixteenth), 
+             ('D5', quarter), ('B4', quarter), ('G4', quarter), 
+             ('F4#', quarter), ('E4', quarter), ('C5', eighth+sixteenth), 
+             ('C5', sixteenth), ('B4', quarter), 
+             ('G4', quarter), ('A4', quarter), ('G4', half+quarter)]
+
+happysong.Noteid = ["D4", "E4", "F4#", "G4", "A4", "B4", "C5", "D5"]
+happysong.Keyids = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k']
 
 
+twinkle = Song("Twinkle Twinkle Little Star")
+twinkle.Noteid = ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"]
+twinkle.Keyids = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k']
 
-#48
-volume = (n)	
+twinkle.song = [('C4', quarter), ('C4', quarter), ('G4', quarter), ('G4', quarter), ('A4', quarter), ('A4', quarter), ('G4', half),
+                ('F4', quarter), ('F4', quarter), ('E4', quarter), ('E4', quarter), ('D4', quarter), ('D4', quarter), ('C4', half),
+                ('G4', quarter), ('G4', quarter), ('F4', quarter), ('F4', quarter), ('E4', quarter), ('E4', quarter), ('D4', half),
+                ('G4', quarter), ('G4', quarter), ('F4', quarter), ('F4', quarter), ('E4', quarter), ('E4', quarter), ('D4', half),
+                ('C4', quarter), ('C4', quarter), ('G4', quarter), ('G4', quarter), ('A4', quarter), ('A4', quarter), ('G4', half),
+                ('F4', quarter), ('F4', quarter), ('E4', quarter), ('E4', quarter), ('D4', quarter), ('D4', quarter), ('C4', half),
+                ]
+
+theSong = happysong
+theSong = twinkle
+
 wait_time = 0.5
 
-# initize Pygame MIDI ----------------------------------------------------------
-pygame.midi.init()
+def note2midi(note):
+  octave = int(note[1])
+  n = "C D EF G A B".index(note[0])
 
-# set the output device --------------------------------------------------------
-player = pygame.midi.Output(device)
+  mnote = (octave+1)*12 + n
+  
+  if len(note) > 2:
+    if note[2] == "#": mnote += 1
+    elif note[2] == "f": mnote -= 1
 
-# set the instrument -----------------------------------------------------------
-player.set_instrument(instrument)
-#text input
-
-# play the notes ---------------------------------------------------------------
-
-notes = { 'g':note_D3, 'a':note_E3, 's':note_Fsharp3, 'd':note_G3,
-		  'w':note_A3, 'right': note_B3, 'f':note_C4, 'space':note_D4 }
-Noteid = ["D3", "E3", "F#3", "G3", "A3", "B3", "C4", "D4"]
-Keyids = ['g', 'a', 's', 'd', 'w', 'h', 'f', 'space']
-
-afbet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 
-	'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+  return mnote
 
 buffer = []
 cy1 = 0
@@ -57,282 +81,300 @@ betpress = []
 
 
 def initialize_window(width, height):
-	pygame.init()
-	pygame.display.set_caption('Happy Birthday!... for now.')
-	#screen = pygame.display.set_mode(size)
-	screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-	screen.fill((0,0,0))
+  pygame.init()
+  pygame.display.set_caption('Happy Birthday!... for now.')
+  #screen = pygame.display.set_mode(size)
+  #screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+  screen = pygame.display.set_mode((1920,1080))
+  screen.fill((0,0,0))
 
-	return screen
+  return screen
 
-def update_screen():
-	screen.fill((0,0,0))
+class PianoGame:
+  def __init__(self, song):
+    self.song = song
 
-	if gamemode == "playing":
-		screen.fill((255,255,255), (0,bottom,width,4))  # draw scoring line
+  def update_screen(self):
+        self.screen.fill((0,0,0))
 
-		cy2 = cy1 + bottom
+        if self.gamemode == "playing":
+                self.screen.fill((255,255,255), (0,self.bottom,self.width,4))  # draw scoring line
 
-		dx = 80
-		margin = (width - dx*8) // 2
+                cy2 = self.cy1 + self.bottom
 
-		for noteid, note in enumerate(Noteid):
-			x = (noteid * dx) + margin
-			screen.fill((255,255,255), (x,0,1,bottom))  # draw note line
+                dx = 80
+                margin = (self.width - dx*8) // 2
 
-			bgcolor = (255,255,255)
+                for noteid, note in enumerate(self.song.Noteid):
+                        x = (noteid * dx) + margin
+                        self.screen.fill((255,255,255), (x,0,1,self.bottom))  # draw note line
 
-			if keypressed and Keyids.index(keypressed) == noteid:
-				bgcolor = (255,0,0) 
+                        bgcolor = (255,255,255)
 
-			textsurface = myfont.render(note, False, bgcolor)  # draw Note
-			screen.blit(textsurface,(x-textsurface.get_size()[0]//2,bottom+30))
+                        if self.keypressed and self.song.Keyids.index(self.keypressed) == noteid:
+                          bgcolor = (255,0,0) 
 
-			textsurface = myfont.render(Keyids[noteid], False, bgcolor) # draw key
-			screen.blit(textsurface,(x-textsurface.get_size()[0]//2,bottom+50))
+                        textsurface = self.myfont.render(note, False, bgcolor)  # draw Note
+                        self.screen.blit(textsurface,(x-textsurface.get_size()[0]//2,self.bottom+30))
 
+                        textsurface = self.myfont.render(self.song.Keyids[noteid], False, bgcolor) # draw key
+                        self.screen.blit(textsurface,(x-textsurface.get_size()[0]//2,self.bottom+50))
 
-		for (y1, y2, note) in displayNotes:
-			if y2 < cy1 or y1 > cy2: continue
-			noteid = Noteid.index(note)
-			x = (noteid * dx) + margin
-			y = bottom - (y2-cy1)
-			screen.fill((0, 76, 255), (x-10, y, 20, y2-y1))
+                for (y1, y2, note) in self.displayNotes:
+                        if y2 < self.cy1 or y1 > cy2: continue
+                        noteid = self.song.Noteid.index(note)
+                        x = (noteid * dx) + margin
+                        y = self.bottom - (y2-self.cy1)
+                        self.screen.fill((0, 76, 255), (x-10, y, 20, y2-y1))
 
-	textsurface = myfont.render("Score: %d" % score, False, (255,255,255))
-	screen.blit(textsurface, (500, 200))
+        textsurface = self.myfont.render("Score: %d" % self.score, False, (255,255,255))
+        self.screen.blit(textsurface, (500, 200))
 
-	textsurface = myfont.render("High Score: %d" % highscores[-1][0], False, (255,255,255))
-	screen.blit(textsurface, (1250, 200))
 
-	if gamemode in ("ready", "score"):
+        if self.gamemode in ("ready", "score"):
+                textsurface = self.myfont.render("Highscores", False, (255,255,255))
+                self.screen.blit(textsurface, ((self.width-textsurface.get_size()[0])//2, self.height//4-50))
 
-		textsurface = myfont.render("Highscores", False, (255,255,255))
-		screen.blit(textsurface, ((width-textsurface.get_size()[0])//2, height//4-50))
+                topten = self.highscores[-10:]
+                topten.reverse()
+                for i, (highscore, name) in enumerate(topten):
+                  textsurface = self.myfont.render("%s %s" % (name, highscore), False, (255,255,255))
+                  self.screen.blit(textsurface, ((self.width-textsurface.get_size()[0])//2, self.height//4 + i*30))
 
-		topten = highscores[-10:]
-		topten.reverse()
-		for i, (highscore, name) in enumerate(topten):
-			textsurface = myfont.render("%s %s" % (name, highscore), False, (255,255,255))
-			screen.blit(textsurface, ((width-textsurface.get_size()[0])//2, height//4 + i*30))
+        if self.gamemode == "ready":
+                if (int(time.time()*2) % 2) == 0:
+                        color = (255,255,255)
+                else:
+                        color = (50,50,50)
+                textsurface = self.myfont.render("Please Enter to Start", False, color)
+                self.screen.blit(textsurface, ((self.width-textsurface.get_size()[0])//2, self.height//2+50))
 
-	if gamemode == "ready":
-		if (int(time.time()*2) % 2) == 0:
-			color = (255,255,255)
-		else:
-			color = (50,50,50)
-		textsurface = myfont.render("Please Enter to Start", False, color)
-		screen.blit(textsurface, ((width-textsurface.get_size()[0])//2, height//2+50))
+                textsurface = self.myfont.render("Speed Options:", False, (255,255,255))
+                self.screen.blit(textsurface, (1250, 250))
 
-		textsurface = myfont.render("Speed Options:", False, (255,255,255))
-		screen.blit(textsurface, (1250, 250))
+                textsurface = self.myfont.render("Super slow", False, (self.Slow))
+                self.screen.blit(textsurface, (1250, 300))
 
-		
+                textsurface = self.myfont.render("Normal", False, (self.Normal))
+                self.screen.blit(textsurface, (1250, 350))
 
-		textsurface = myfont.render("Super slow", False, (Slow))
-		screen.blit(textsurface, (1250, 300))
+                textsurface = self.myfont.render("Impossable", False, (self.Imp))
+                self.screen.blit(textsurface, (1250, 400))
+
+                textsurface = self.myfont.render("Press 1, 2, or 3 ", False, (255,255,255))
+                self.screen.blit(textsurface, (1250, 600))
+
+                textsurface = self.myfont.render("to change difficulty ", False, (255,255,255))
+                self.screen.blit(textsurface, (1250, 650))
+
+                textsurface = self.myfont.render("level", False, (255,255,255))
+                self.screen.blit(textsurface, (1250, 700))
 
-		textsurface = myfont.render("Normal", False, (Normal))
-		screen.blit(textsurface, (1250, 350))
-
-		textsurface = myfont.render("Impossable", False, (Imp))
-		screen.blit(textsurface, (1250, 400))
-
-		textsurface = myfont.render("Press 1, 2, or 3 ", False, (255,255,255))
-		screen.blit(textsurface, (1250, 600))
-
-		textsurface = myfont.render("to change difficulty ", False, (255,255,255))
-		screen.blit(textsurface, (1250, 650))
-
-		textsurface = myfont.render("level", False, (255,255,255))
-		screen.blit(textsurface, (1250, 700))
-
-		
-
-
-	if gamemode == "score":
-		textsurface = myfont.render("Please enter your name: ", False, (255,255,255))
-		screen.blit(textsurface, ((width-textsurface.get_size()[0])//2, height//2+50))
-
-		textinput_surf = textinput.get_surface()
-		screen.blit(textinput_surf, ((width-textsurface.get_size()[0])//2, height//2 + 100))
-
-
-	# Blit its surface onto the screen
-	pygame.display.flip()
-
-def list_of_keys_pressed():
-	return pygame.key.get_pressed()
-
-# DON'T TOUCH THE CODE ABOVE ----------
-width = 640
-height = 480
-screen = initialize_window(width, height)
-width, height = pygame.display.get_surface().get_size()
-
-bottom = height - 300
-score = 0
-
-highscores = [(1000, "Hayden"), (500, "Jacob"), (200, "Charlotte")]
-highscores.sort()
-
-speed = 3
-
-pygame.font.init() 
-myfont = pygame.font.SysFont('Arial', 30)
-
-displayNotes = []
-y = int(height / 2)
-noteHeight = 20
-
-for (note, dur) in happysong:
-	displayNotes.append((y, y + dur * noteHeight, note))
-	y += (dur * noteHeight)
-	y += noteHeight//5
-
-# Everything that changes, lives in your game loop!
-# while the game is running, it updates!
-clock = pygame.time.Clock()
-
-running = True
-keypressed = None
-playsong = False
-
-Slow = (101,255,0)
-Normal = (250,255,0)
-Imp = (255,0,0)
-
-k1 = False
-k2 = False
-k3 = False
-
-n = 0
-
-gamemode = "ready"
-
-while running:
-	if gamemode == "playing":
-		if keypressed:
-			if not keyboard.is_pressed(keypressed):
-				note = notes[key]
-				player.note_off(note, volume)
-				keypressed = None
-		else:
-			for key, note in notes.items():
-				if keyboard.is_pressed(key):
-					buffer.append(key)
-					player.note_on(note, volume)
-					keypressed = key
-					break
-
-		if keypressed:
-			for (y1, y2, note) in displayNotes:
-				if y2 > cy1 and y1 < cy1:
-					noteid = Noteid.index(note)
-					if noteid == Keyids.index(keypressed):
-						if k1 == True:
-							score += 0.25
-
-						elif k2 == True:
-							score += 5
-
-						elif k3 == True:
-							score += 15
-
-						else:
-							score += 5
-
-		buffer = buffer[-6:]
-		s = ''.join(buffer)
-		
-		if s.endswith("gasd"):
-			wave_obj = sa.WaveObject.from_wave_file("Ta Da-SoundBible.com-1884170640.wav")
-			play_obj = wave_obj.play()
-			play_obj.wait_done()
-			buffer = []
-			if  n == 1000 and score < 1000:
-				score += 1000
-
-			elif score > 1000:
-				pass
-
-			n = time.time
-	events = pygame.event.get()
-
-	for event in events:
-		# This will exit game loop
-
-		if event.type == pygame.KEYDOWN:
-			if event.key == pygame.K_ESCAPE:
-				running = False
-				break
-			if gamemode == "ready":
-				if event.key == pygame.K_RETURN:
-					score = 0 
-					playsong = True
-					gamemode = "playing"
-
-				elif event.key == pygame.K_1:
-					Slow = (101,255,0)
-					Normal = (107,107,107)
-					Imp = (107,107,107)
-					speed = 1
-					k1 = False
-					k2 = True
-					k3 = False
-
-				elif event.key == pygame.K_2:
-					Normal = (250,255,0)
-					Slow = (107,107,107)
-					Imp = (107,107,107)	
-					speed = 2.5
-					k1 = False
-					k2 = True
-					k3 = False
-
-				elif event.key == pygame.K_3:
-					Imp = (255,0,0)
-					Slow = (107,107,107)
-					Normal = (107,107,107)
-					speed = 10
-					k1 = False
-					k2 = False
-					k3 = True
-
-				else:
-					Normal = (250,255,0)
-					Slow = (107,107,107)
-					Imp = (107,107,107)	
-					speed = 2.5
-					k1 = False
-					k2 = True
-					k3 = False
-
-	if gamemode == "score":
-		if textinput.update(events) == True:
-			name = textinput.get_text()
-			highscores.append((score, name))
-			highscores.sort()
-			gamemode = "ready"
-			cy1 = 0
-    
-	#screen.fill((0,0,0))
-	# Always leave this! It adds your updates.
-	update_screen()
-	
-	if gamemode == "playing":
-		lastnote = displayNotes[-1]
-		if cy1 > lastnote[1]+100:
-			#song is overxs
-			playsong = False
-
-			## show score
-
-			textinput = pygame_textinput.TextInput('', text_color=(255, 255, 255), cursor_color=(255, 255, 255))
-			textinput.clear_text()
-			gamemode = "score"
-
-		if playsong:
-			cy1 += speed
-
-	clock.tick(60)
+        if self.gamemode == "score":
+                textsurface = self.myfont.render("Please enter your name: ", False, (255,255,255))
+                self.screen.blit(textsurface, ((self.width-textsurface.get_size()[0])//2, self.height//2+50))
+
+                textinput_surf = self.textinput.get_surface()
+                self.screen.blit(textinput_surf, ((self.width-textsurface.get_size()[0])//2, self.height//2 + 100))
+
+        # Blit its surface onto the screen
+        pygame.display.flip()
+
+
+  def run(self):
+    self.width = 640
+    self.height = 480
+    self.screen = initialize_window(self.width, self.height)
+    self.width, self.height = pygame.display.get_surface().get_size()
+
+    self.bottom = self.height - 300
+    self.score = 0
+
+    self.highscores = [(1000, "Hayden"), (500, "Jacob"), (200, "Charlotte")]
+    self.highscores.sort()
+
+    self.speed = 3
+
+    pygame.font.init() 
+    self.myfont = pygame.font.SysFont('Arial', 30)
+
+    self.displayNotes = []
+    y = int(self.height / 2)
+    noteHeight = 20
+
+    for (note, dur) in self.song.song:
+      self.displayNotes.append((y, y + dur * noteHeight, note))
+      y += (dur * noteHeight)
+      y += noteHeight//5
+
+    # Everything that changes, lives in your game loop!
+    # while the game is running, it updates!
+    self.clock = pygame.time.Clock()
+
+    self.running = True
+    self.keypressed = None
+    self.playsong = False
+
+    self.buffer = []
+    self.cy1 = 0
+
+    self.k1 = False
+    self.k2 = False
+    self.k3 = False
+
+    self.Slow = (101,255,0)
+    self.Normal = (250,255,0)
+    self.Imp = (255,0,0)
+
+    self.gamemode = "ready"
+
+    while self.running:
+      events = pygame.event.get()
+      for event in events:
+        # This will exit game loop
+        if event.type == pygame.QUIT:
+          self.running = False
+
+        if self.gamemode == "playing":
+          if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                  self.score = 0 
+                  self.playsong = True
+                elif event.key == pygame.K_q:
+                  return
+                else:
+                  c = chr(event.key)
+                  if not self.keypressed:
+                    if c in self.song.Keyids:
+                      i = self.song.Keyids.index(c)
+                      note = self.song.Noteid[i]
+                      if note:
+                        self.buffer.append(c)
+                        if self.player:
+                          self.player.note_on(note2midi(note), volume)
+                        self.keypressed = c
+
+          if event.type == pygame.KEYUP:
+                c = chr(event.key)
+                if self.keypressed:
+                  if c == self.keypressed:
+                    if c in self.song.Keyids:
+                      i = self.song.Keyids.index(c)
+                      note = self.song.Noteid[i]
+
+                      if self.player:
+                        self.player.note_off(note2midi(note), volume)
+                      self.keypressed = None
+
+
+        if self.gamemode == "ready":
+          if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+              self.score = 0 
+              self.playsong = True
+              self.gamemode = "playing"
+
+            elif event.key == pygame.K_1:
+                    self.Slow = (101,255,0)
+                    self.Normal = (107,107,107)
+                    self.Imp = (107,107,107)
+                    self.speed = 1
+                    self.k1 = False
+                    self.k2 = True
+                    self.k3 = False
+
+            elif event.key == pygame.K_2:
+                    self.Normal = (250,255,0)
+                    self.Slow = (107,107,107)
+                    self.Imp = (107,107,107)	
+                    self.speed = 2.5
+                    self.k1 = False
+                    self.k2 = True
+                    self.k3 = False
+
+            elif event.key == pygame.K_3:
+                    self.Imp = (255,0,0)
+                    self.Slow = (107,107,107)
+                    self.Normal = (107,107,107)
+                    self.speed = 10
+                    self.k1 = False
+                    self.k2 = False
+                    self.k3 = True
+
+            else:
+                    self.Normal = (250,255,0)
+                    self.Slow = (107,107,107)
+                    self.Imp = (107,107,107)	
+                    self.speed = 2.5
+                    self.k1 = False
+                    self.k2 = True
+                    self.k3 = False
+
+        if self.gamemode == "score":
+                if self.textinput.update(events) == True:
+                        name = self.textinput.get_text()
+                        self.highscores.append((self.score, name))
+                        self.highscores.sort()
+                        self.gamemode = "ready"
+                        self.cy1 = 0
+
+      self.update_screen()
+
+      if self.gamemode == "playing":
+        if self.keypressed:
+            for (y1, y2, note) in self.displayNotes:
+              if y2 > self.cy1 and y1 < self.cy1:
+                noteid = self.song.Noteid.index(note)
+                if noteid == self.song.Keyids.index(self.keypressed):
+                  if self.k1 == True:   self.score += 0.25
+                  elif self.k2 == True: self.score += 5
+                  elif self.k3 == True: self.score += 15
+                  else:
+                    self.score += 5
+
+                  if self.keypressed:
+                    self.buffer = self.buffer[-6:]
+                  s = ''.join(self.buffer)
+
+                  if s.endswith("gasd"):
+                    wave_obj = sa.WaveObject.from_wave_file("Ta Da-SoundBible.com-1884170640.wav")
+                    play_obj = wave_obj.play()
+                    play_obj.wait_done()
+                    buffer = []
+                    if n == 1000 and self.score < 1000:
+                      self.score += 1000
+                    elif self.score > 1000:
+                      pass
+
+                    n = time.time()
+      if self.gamemode == "playing":
+              lastnote = self.displayNotes[-1]
+              if self.cy1 > lastnote[1]+100:
+                      #song is overxs
+                      self.playsong = False
+
+                      ## show score
+
+                      self.textinput = pygame_textinput.TextInput('', text_color=(255, 255, 255), cursor_color=(255, 255, 255))
+                      self.textinput.clear_text()
+                      self.gamemode = "score"
+
+              if self.playsong:
+                      self.cy1 += self.speed
+
+      self.clock.tick(60)
+
+
+def main():
+  if 1:
+    pygame.midi.init()
+    #device = pygame.midi.get_default_output_id()
+    player = pygame.midi.Output(device, 0)
+    player.set_instrument(instrument)
+
+  pg = PianoGame(theSong)
+  pg.player = player
+  pg.run()
+  #pygame.midi.quit()
+
+main()
