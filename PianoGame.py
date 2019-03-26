@@ -370,9 +370,18 @@ class PianoGame:
 
 def main():
   if 1:
+    global device
+
     pygame.midi.init()
     #device = pygame.midi.get_default_output_id()
-    player = pygame.midi.Output(device, 0)
+    while device < 255:
+      try:
+        player = pygame.midi.Output(device, 0)
+        break
+      except pygame.midi.MidiException:
+        pass
+      device += 1
+
     player.set_instrument(instrument)
 
   pg = PianoGame(theSong)
