@@ -11,8 +11,10 @@ import pygame.time
 import pygame_textinput
 import config
 
-import simpleaudio as sa
-#sa = None
+try:
+  import simpleaudio as sa
+except ImportError:
+  sa = None
 
 BLACK = (0,0,0)
 WHITE = (255,255,255)
@@ -496,6 +498,7 @@ def start():
 
     pygame.midi.init()
     #device = pygame.midi.get_default_output_id()
+    player = None
     while device < 255:
       try:
         player = pygame.midi.Output(device, 0)
@@ -504,6 +507,9 @@ def start():
         pass
       device += 1
 
+    if player is None:
+      logging.error("Cannot find suitable midi output device.")
+      return
     player.set_instrument(instrument)
 
   app = App(fps=30)
